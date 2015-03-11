@@ -1,5 +1,5 @@
 from PyQt4.QtGui import QItemDelegate, QApplication, QStyle, QTableView, QProgressBar, QStyleOptionProgressBar, QHeaderView, QPen, QBrush, QColor, QPainter, QTextOption
-from PyQt4.QtCore import QAbstractTableModel, QObject, Qt, QSize, QRectF, pyqtSignal, QEvent
+from PyQt4.QtCore import QAbstractTableModel, QObject, Qt, QSize, QRectF, pyqtSignal, QEvent, QVariant
 from editwidget import EditWidget
 from interactiveprogressbar import MaximunDistance
 class Cell(QObject):
@@ -103,8 +103,10 @@ class CellDelegate(QItemDelegate):
 
 	def paint(self,painter,option,index):
 		painter.save()
-		probability = index.data(MatrixModel.Probability_DataRole).toInt()[0]
-		colorvalue = index.data(MatrixModel.Distance_DataRole).toInt()[0]
+		probability = index.data(MatrixModel.Probability_DataRole)
+		probability = probability.toInt()[0] if isinstance(probability,QVariant) else probability
+		colorvalue = index.data(MatrixModel.Distance_DataRole)
+		colorvalue = colorvalue.toInt()[0] if isinstance(colorvalue,QVariant) else colorvalue
 		rect = option.rect
 		painter.setRenderHint(QPainter.Antialiasing,True)
 		painter.setPen(Qt.NoPen)
@@ -133,9 +135,12 @@ class CellDelegate(QItemDelegate):
 		return editor
 
 	def setEditorData(self,editor,index):
-		probability = index.data(MatrixModel.Probability_DataRole).toInt()[0]
-		distance = index.data(MatrixModel.Distance_DataRole).toInt()[0]
-		lockState = index.data(MatrixModel.Lock_DataRole).toBool()
+		probability = index.data(MatrixModel.Probability_DataRole)
+		probability = probability.toInt()[0] if isinstance(probability,QVariant) else probability
+		distance = index.data(MatrixModel.Distance_DataRole)
+		distance = distance.toInt()[0] if isinstance(distance,QVariant) else distance
+		lockState = index.data(MatrixModel.Lock_DataRole)
+		lockState = lockState.toBool() if isinstance(lockState,QVariant) else lockState
 		editor.setData(probability,distance,lockState)
 
 	# def updateEditorGeometry(self,editor,option,index):
