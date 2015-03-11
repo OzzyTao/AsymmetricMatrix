@@ -39,6 +39,7 @@ class MatrixModel(QAbstractTableModel):
 	def __init__(self, classnames):
 		super(MatrixModel, self).__init__()
 		self._classNames = classnames
+		self._classIDs = [str(x[0]) for x in classnames]
 		self._matrixData = {}
 		self.initMatrix()
 
@@ -92,6 +93,37 @@ class MatrixModel(QAbstractTableModel):
 			return QBrush(headerinfo[2])
 		if role == Qt.ToolTipRole:
 			return headerinfo[1]
+
+	def probability(self,observation1,observation2):
+		if str(observation1) in self._classIDs and str(observation2) in self._classIDs:
+			realclass1 = self.trueClass(observation1)
+			realclass2 = self.trueClass(observation2)
+			return realclass1[1]*realclass2[1]/10000.0
+		else:
+			return 0
+
+	def changeLevel(self,observation1,observation2):
+		if str(observation1) in self._classIDs and str(observation2) in self._classIDs:
+			if observation1!=observation2:
+				realclass1 = self.trueClass(observation1)
+				realclass2 = self.trueClass(observation2)
+				return self._matrixData[realclass1[0]][realclass2[0]].distance()
+			else:
+				return 0
+		else:
+			return -1
+
+	def trueClass(self,observation):
+		maxPossi = 0
+		cl = str(observation)
+		trans = self._matrixData[cl]
+		for key in trans:
+			if trans[key].probability()>=maxPossi:
+				maxPossi = trans[key].probability()
+				cl = key
+		return cl, maxPossi if maxPossi else 1.0
+
+
 
 class CellDelegate(QItemDelegate):
 	"""docstring for CellDelegate"""
@@ -168,4 +200,7 @@ if __name__ == '__main__':
 	delegate = CellDelegate()
 	tableView.setItemDelegate(delegate)
 	tableView.show()
+	print model.probability(1,2),model.changeLevel(1,2)
+	print model.probability(1,1),model.changeLevel(1,1)
+	print model.probability(10,20),model.changeLevel(10,20)
 	sys.exit(app.exec_())
