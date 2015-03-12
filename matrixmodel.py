@@ -128,13 +128,12 @@ class MatrixModel(QAbstractTableModel):
 class CellDelegate(QItemDelegate):
 	"""docstring for CellDelegate"""
 	editorCreated = pyqtSignal(int,int)
-	editorClosed = pyqtSignal(int,int)
 	def __init__(self, parent=None):
 		super(CellDelegate, self).__init__(parent)
-		self.closeEditor.connect(self.close_editor)
+
 
 	def paint(self,painter,option,index):
-		painter.save()
+		# painter.save()
 		probability = index.data(MatrixModel.Probability_DataRole)
 		probability = probability.toInt()[0] if isinstance(probability,QVariant) else probability
 		colorvalue = index.data(MatrixModel.Distance_DataRole)
@@ -154,15 +153,13 @@ class CellDelegate(QItemDelegate):
 		textpen = QPen(Qt.black)
 		painter.setPen(textpen)
 		painter.drawText(QRectF(rect),'%d%%' % (probability,),QTextOption(Qt.AlignCenter))
-		painter.restore()
+		# painter.restore()
 
 	def sizeHint(self, option, index):
 		return QSize(96,67)
 
 	def createEditor(self,parent,option,index):
 		editor=EditWidget(parent=parent)
-		editor.row = index.row()
-		editor.column = index.column()
 		self.editorCreated.emit(index.row(),index.column())
 		return editor
 
@@ -175,8 +172,8 @@ class CellDelegate(QItemDelegate):
 		lockState = lockState.toBool() if isinstance(lockState,QVariant) else lockState
 		editor.setData(probability,distance,lockState)
 
-	# def updateEditorGeometry(self,editor,option,index):
-	# 	editor.setGeometry(option.rect)
+	def updateEditorGeometry(self,editor,option,index):
+		editor.setGeometry(option.rect)
 
 	def setModelData(self,editor,model,index):
 		probability, distance, lockState = editor.data()
@@ -184,8 +181,6 @@ class CellDelegate(QItemDelegate):
 		model.setData(index,distance,MatrixModel.Distance_EditRole)
 		model.setData(index,lockState,MatrixModel.Lock_EditRole)
 
-	def close_editor(self,editor,hint):
-		self.editorClosed.emit(editor.row,editor.column)
 
 	
 if __name__ == '__main__':
@@ -200,7 +195,4 @@ if __name__ == '__main__':
 	delegate = CellDelegate()
 	tableView.setItemDelegate(delegate)
 	tableView.show()
-	print model.probability(1,2),model.changeLevel(1,2)
-	print model.probability(1,1),model.changeLevel(1,1)
-	print model.probability(10,20),model.changeLevel(10,20)
 	sys.exit(app.exec_())
